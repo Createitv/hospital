@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import * as xlsx from 'xlsx'
 import {dataMerge, groupedData} from "../common/collection.ts";
-import {ex, exceljsToExcel} from "../common/file.ts";
+import {exceljsToExcel} from "../common/file.ts";
 import {ref} from 'vue'
 import {ElNotification} from 'element-plus'
 import {useCofigStore} from "@/store/config.ts";
 import {unique} from '@/common/collection.ts'
+import {sleep} from "@/common/wait.ts";
 
-var excelData = {}
+let excelData = {}
 const fullscreenLoading = ref(false)
 const showButton = ref(false)
 const configStore = useCofigStore()
@@ -86,7 +87,7 @@ function getHeaderRow(sheet) {
 
 
 function exportOneExcel(name: string) {
-  console.log("exportExcel", name, excelData);
+  console.log("wholeExceldata", name, excelData);
 
   // console.log(excelData['健康管理中心'], excelData)
   Object.keys(excelData).forEach(async (key) => {
@@ -96,32 +97,19 @@ function exportOneExcel(name: string) {
       //   修改对应文件名称为对照表的key
       console.log(`${key}.xlsx 表生成成功 数据源为`, excelWriteData)
       // if (key !== 'undefined') {
-      await exceljsToExcel(excelWriteData, key)
+      exceljsToExcel(excelWriteData, key)
       console.log("after exportOneExcel excel");
       // }
     }
   })
 }
-//
-// function exportAllFile(name: string) {
-//   console.log("exportExcel", name, excelData);
-//
-//   // console.log(excelData['健康管理中心'], excelData)
-//   Object.keys(excelData).forEach(async (key) => {
-//
-//     let excelWriteData = dataMerge(excelData[key])
-//     //   修改对应文件名称为对照表的key
-//     console.log(`${key}.xlsx 表生成成功 数据源为`, excelWriteData)
-//     // if (key !== 'undefined') {
-//     await exceljsToExcel(excelWriteData, key)
-//     console.log("after exportOneExcel excel");
-//     // }
-//   })
-// }
-
 
 function exportExcelEx() {
-  ex()
+  unique(Object.values(configStore.config)).forEach(async (key) => {
+    console.log(key, document.getElementById(key).innerText)
+    document.getElementById(key).click()
+    sleep(10)
+  })
 }
 
 </script>
@@ -139,13 +127,13 @@ function exportExcelEx() {
     </el-upload>
 
     <el-scrollbar max-height="200px" v-if="showButton">
-        <el-button v-for="item in unique(Object.values(configStore.config))" :key="item" type="primary"
+        <el-button v-for="item in unique(Object.values(configStore.config))" :key="item" type="primary" :id="item"
                    @click="exportOneExcel(item)">导出{{ item }}表格
         </el-button>
     </el-scrollbar>
 
 
-    <div class="mt-10" v-show="false">
+    <div class="mt-10">
         <el-button type="primary" @click="exportExcelEx" element-loading-background="rgba(192,192,192,0.3)"
                    v-loading.fullscreen.lock="fullscreenLoading">下载所有文件
         </el-button>
